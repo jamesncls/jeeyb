@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ShoppingBag, Search, User, Menu, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useCartStore } from "@/lib/cart-store";
 import { NAV_LINKS } from "@/lib/site";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -12,6 +13,8 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const cartCount = useCartStore((state) => state.getTotalItems());
+  const openCart = useCartStore((state) => state.openCart);
 
   // Sessão do Supabase só decide pra onde o ícone de conta aponta; quem protege o /admin é o servidor.
   useEffect(() => {
@@ -74,12 +77,14 @@ export function Navbar() {
 
           <button
             type="button"
-            aria-label="Carrinho, 0 itens"
+            aria-label={`Abrir carrinho, ${cartCount} ${cartCount === 1 ? "item" : "itens"}`}
+            aria-haspopup="dialog"
+            onClick={openCart}
             className="group relative ml-1 p-2 bg-surface hover:bg-surface2 border border-line hover:border-wine/60 hover:shadow-wine-subtle rounded-sm transition-all duration-300"
           >
             <ShoppingBag className="w-5 h-5 text-fg group-hover:text-wine-glow transition-colors duration-300" />
-            <span className="absolute -top-1.5 -right-1.5 bg-wine text-white font-mono text-[10px] w-5 h-5 rounded-full flex items-center justify-center border border-background font-bold">
-              0
+            <span className="absolute -top-1.5 -right-1.5 bg-wine text-white font-mono text-[10px] min-w-5 h-5 px-1 rounded-full flex items-center justify-center border border-background font-bold">
+              {cartCount > 99 ? "99+" : cartCount}
             </span>
           </button>
 

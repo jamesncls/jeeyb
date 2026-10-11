@@ -1,12 +1,15 @@
 "use client";
 
-import { ArrowUpRight } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
 import { Product } from "@/lib/supabase";
-import { formatPrice, productWhatsAppLink } from "@/lib/products";
+import { formatPrice } from "@/lib/products";
+import { useCartStore } from "@/lib/cart-store";
 import { ProductImage } from "@/components/shop/ProductImage";
 
 // `wide`: card único ocupando a linha toda, com foto e texto lado a lado no desktop.
 export function FeaturedCard({ product, wide = false }: { product: Product; wide?: boolean }) {
+  const requestAdd = useCartStore((state) => state.requestAdd);
+
   return (
     <article
       className={`group relative h-full flex flex-col bg-surface border border-line hover:border-wine/60 hover:shadow-wine-glow rounded-sm overflow-hidden transition-[border-color,box-shadow] duration-300 ${
@@ -49,15 +52,15 @@ export function FeaturedCard({ product, wide = false }: { product: Product; wide
             <span className="block font-mono text-[10px] text-muted uppercase tracking-widest">PREÇO</span>
             <span className="block font-mono font-bold text-xl sm:text-2xl text-fg">{formatPrice(product.price)}</span>
           </div>
-          <a
-            href={productWhatsAppLink(product)}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            aria-haspopup="dialog"
+            onClick={() => requestAdd(product)}
             className="inline-flex items-center gap-1.5 bg-wine hover:bg-wine-light text-white font-mono text-xs uppercase tracking-wider px-4 py-3 rounded-sm shadow-wine-glow transition-colors duration-300"
           >
+            <ShoppingBag className="w-3.5 h-3.5" aria-hidden />
             COP
-            <ArrowUpRight className="w-3.5 h-3.5" aria-hidden />
-          </a>
+          </button>
         </div>
       </div>
     </article>

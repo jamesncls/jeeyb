@@ -3,7 +3,8 @@
 import { motion } from "framer-motion";
 import { ShoppingBag } from "lucide-react";
 import { Product } from "@/lib/supabase";
-import { formatPrice, productWhatsAppLink } from "@/lib/products";
+import { formatPrice } from "@/lib/products";
+import { useCartStore } from "@/lib/cart-store";
 import { ProductImage } from "./ProductImage";
 
 const IMAGE_SIZES = "(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw";
@@ -15,6 +16,7 @@ export const productCardVariants = {
 };
 
 export function ProductCard({ product }: { product: Product }) {
+  const requestAdd = useCartStore((state) => state.requestAdd);
   const sizes = product.sizes ?? [];
   const hiddenSizes = sizes.length - MAX_SIZES_SHOWN;
 
@@ -70,15 +72,15 @@ export function ProductCard({ product }: { product: Product }) {
           <span className="block font-mono text-[10px] text-muted uppercase tracking-widest">PREÇO</span>
           <span className="block font-mono font-bold text-xl text-fg">{formatPrice(product.price)}</span>
 
-          <a
-            href={productWhatsAppLink(product)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 flex items-center justify-center gap-2 bg-surface2 hover:bg-wine border border-line hover:border-wine-light text-fg font-mono text-xs uppercase tracking-wider px-3 py-3 rounded-sm transition-colors duration-300"
+          <button
+            type="button"
+            aria-haspopup="dialog"
+            onClick={() => requestAdd(product)}
+            className="mt-3 w-full flex items-center justify-center gap-2 bg-surface2 hover:bg-wine border border-line hover:border-wine-light text-fg font-mono text-xs uppercase tracking-wider px-3 py-3 rounded-sm transition-colors duration-300"
           >
             <ShoppingBag className="w-3.5 h-3.5" aria-hidden />
-            COP / COMPRAR
-          </a>
+            COP / ADICIONAR
+          </button>
         </div>
       </div>
     </motion.article>

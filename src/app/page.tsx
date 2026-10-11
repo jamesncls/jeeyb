@@ -5,6 +5,8 @@ import { Hero } from "@/components/home/Hero";
 import { FeaturedDrops } from "@/components/home/FeaturedDrops";
 import { Manifesto } from "@/components/home/Manifesto";
 import { ProductGrid } from "@/components/shop/ProductGrid";
+import { CartDrawer } from "@/components/cart/CartDrawer";
+import { SizePicker } from "@/components/cart/SizePicker";
 
 export default function Home() {
   return (
@@ -17,6 +19,8 @@ export default function Home() {
         <Manifesto />
       </main>
       <Footer />
+      <CartDrawer />
+      <SizePicker />
     </MotionProvider>
   );
 }

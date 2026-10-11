@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase, Product } from "@/lib/supabase";
-import { whatsappLink } from "@/lib/site";
 
 export const BRAND_FILTERS = ["Nike", "Jordan", "Adidas", "Streetwear"];
 
@@ -61,10 +60,4 @@ export function useProducts() {
 
 export function formatPrice(price: number) {
   return price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-
-export function productWhatsAppLink(product: Product) {
-  return whatsappLink(
-    `Salve, jeeyb! Quero copar esse aqui:\n\n${product.name} (${product.brand})\n${formatPrice(product.price)}\n\nAinda tem disponível?`
-  );
 }
