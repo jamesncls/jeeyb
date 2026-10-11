@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, MessageCircle, RefreshCw } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { formatPrice } from "@/lib/format";
-import { ORDER_STATUSES, ORDER_STATUS_LABELS, Order, OrderStatus, orderCode } from "@/lib/orders";
+import { formatPhone, formatPrice } from "@/lib/format";
+import { ORDER_STATUSES, ORDER_STATUS_LABELS, Order, OrderStatus, formatOrderAddress, orderCode } from "@/lib/orders";
 
 const STATUS_STYLES: Record<OrderStatus, string> = {
   pending: "border-wine-glow text-wine-glow",
@@ -20,12 +20,6 @@ const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
   hour: "2-digit",
   minute: "2-digit",
 });
-
-// 5547988503312 → +55 47 98850-3312
-function formatPhone(phone: string) {
-  const match = phone.match(/^(\d{2})(\d{2})(\d{4,5})(\d{4})$/);
-  return match ? `+${match[1]} ${match[2]} ${match[3]}-${match[4]}` : phone;
-}
 
 function customerWhatsAppLink(order: Order) {
   const phone = order.customer?.phone?.replace(/\D/g, "");
@@ -183,7 +177,7 @@ export function OrdersPanel() {
                   <p className="font-mono text-xs text-muted mt-1 break-words">
                     {order.customer?.phone ? formatPhone(order.customer.phone) : "Sem WhatsApp"}
                     {" · "}
-                    {order.customer?.location || "Sem local"}
+                    {formatOrderAddress(order.customer) || "Sem endereço"}
                   </p>
                 </div>
 

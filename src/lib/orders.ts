@@ -1,13 +1,46 @@
 import { supabase } from "@/lib/supabase";
-import { formatPrice } from "@/lib/format";
+import { formatPhone, formatPrice } from "@/lib/format";
 import { whatsappLink } from "@/lib/site";
 import type { CartItem } from "@/lib/cart-store";
+import { CustomerProfile, formatCep, formatCityLine, formatStreetLine } from "@/lib/profile";
 
+// Vai no jsonb `customer` do pedido: é a foto dos dados de entrega na hora da compra.
 export interface OrderCustomer {
   name: string;
+  // "Cidade / UF"
   location: string;
   // Só dígitos, com DDI (ex: 5547988503312). É o que o admin usa pra chamar o cliente.
   phone: string;
+  email?: string;
+  cep?: string;
+  street?: string;
+  number?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
+}
+
+export function customerFromProfile(profile: CustomerProfile, email?: string): OrderCustomer {
+  return {
+    name: profile.fullName,
+    location: `${profile.city} / ${profile.state}`,
+    phone: profile.phone,
+    email,
+    cep: profile.cep,
+    street: profile.street,
+    number: profile.number,
+    neighborhood: profile.neighborhood,
+    city: profile.city,
+    state: profile.state,
+  };
+}
+
+// Endereço em uma linha, pra lista de pedidos do admin. Pedido antigo só tem `location`.
+export function formatOrderAddress(customer: Partial<OrderCustomer> | null) {
+  if (!customer) return "";
+  if (!customer.street) return customer.location ?? "";
+  const cep = customer.cep ? ` — CEP ${formatCep(customer.cep)}` : "";
+  return `${customer.street}, ${customer.number ?? "s/n"} — ${customer.neighborhood ?? ""}, ${customer.location ?? ""}${cep}`;
 }
 
 export const ORDER_STATUSES = ["pending", "confirmed", "shipped", "delivered"] as const;
@@ -40,17 +73,12 @@ export interface Order {
   created_at: string;
 }
 
-// "(47) 98850-3312" → "5547988503312". Devolve null se não parecer um celular/fixo BR com DDD.
-export function normalizePhone(input: string) {
-  const digits = input.replace(/\D/g, "").replace(/^0+/, "");
-  if (digits.length === 10 || digits.length === 11) return `55${digits}`;
-  if ((digits.length === 12 || digits.length === 13) && digits.startsWith("55")) return digits;
-  return null;
-}
-
 export interface OrderDraft {
   id: string;
-  customer: OrderCustomer;
+  // Conta do cliente no Supabase Auth; null quando o pedido sai sem sessão.
+  userId: string | null;
+  profile: CustomerProfile;
+  email?: string;
   items: CartItem[];
   total: number;
 }
@@ -72,7 +100,7 @@ export function orderCode(id: string) {
 // toLocaleString usa espaço não separável depois do "R$"; no WhatsApp vai espaço normal.
 const price = (value: number) => formatPrice(value).replace(/ /g, " ");
 
-export function buildOrderMessage({ id, customer, items, total }: OrderDraft) {
+export function buildOrderMessage({ id, profile, items, total }: OrderDraft) {
   const lines = items.map(
     (item) =>
       `- ${item.quantity}x ${item.product.name.trim()} (Tam: ${item.selectedSize}) — ${price(item.product.price * item.quantity)}`
@@ -82,8 +110,10 @@ export function buildOrderMessage({ id, customer, items, total }: OrderDraft) {
     "🔥 *NOVO PEDIDO — JEEYB STORE*",
     "",
     `*Pedido:* #${orderCode(id)}`,
-    `*Cliente:* ${customer.name}`,
-    `*Local:* ${customer.location}`,
+    `*Cliente:* ${profile.fullName}`,
+    `*WhatsApp:* ${formatPhone(profile.phone)}`,
+    `*Endereço:* ${formatStreetLine(profile)}`,
+    `*Local:* ${formatCityLine(profile)}`,
     "",
     "*ITENS DO PEDIDO:*",
     ...lines,
@@ -96,29 +126,31 @@ export function orderWhatsAppLink(order: OrderDraft) {
   return whatsappLink(buildOrderMessage(order));
 }
 
-// Melhor-esforço: se a tabela não existir ou o insert falhar, o checkout segue pelo WhatsApp.
-export async function saveOrder({ id, customer, items, total }: OrderDraft) {
+// Melhor-esforço: se o insert falhar, o checkout segue pelo WhatsApp do mesmo jeito.
+export async function saveOrder({ id, userId, profile, email, items, total }: OrderDraft) {
+  const row = {
+    id,
+    customer: customerFromProfile(profile, email),
+    items: items.map((item) => ({
+      product_id: item.product.id,
+      name: item.product.name.trim(),
+      brand: item.product.brand,
+      size: item.selectedSize,
+      quantity: item.quantity,
+      unit_price: item.product.price,
+    })),
+    total,
+    status: "pending",
+  };
+
   try {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    // Com sessão, o pedido fica ligado à conta (user_id pro RLS "meus pedidos", customer_id pro perfil).
+    const linked = userId ? await supabase.from("orders").insert({ ...row, user_id: userId, customer_id: userId }) : null;
+    if (linked && !linked.error) return true;
 
-    const { error } = await supabase.from("orders").insert({
-      id,
-      user_id: session?.user.id ?? null,
-      customer,
-      items: items.map((item) => ({
-        product_id: item.product.id,
-        name: item.product.name.trim(),
-        brand: item.product.brand,
-        size: item.selectedSize,
-        quantity: item.quantity,
-        unit_price: item.product.price,
-      })),
-      total,
-      status: "pending",
-    });
-
+    // Sem sessão (conta ainda esperando confirmar o e-mail) o RLS recusa o vínculo:
+    // salva o pedido só com os dados do cliente.
+    const { error } = await supabase.from("orders").insert(row);
     if (error) console.warn("Pedido não foi salvo no Supabase:", error.message);
     return !error;
   } catch (error) {

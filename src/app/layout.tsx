@@ -34,6 +34,10 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
       <body className="font-sans antialiased bg-background text-fg selection:bg-wine selection:text-white min-h-screen flex flex-col">
+        {/* Sem JavaScript a splash da home nunca sairia da frente */}
+        <noscript>
+          <style>{"[data-splash-root]{display:none}html{overflow:auto!important}"}</style>
+        </noscript>
         {children}
       </body>
     </html>

@@ -1,8 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { HERO_VIDEOS } from "@/lib/site";
+import { getHomeRevealed, subscribeSplash } from "@/lib/splash";
+import { useHeroSlider } from "@/lib/use-hero-slider";
+import { HeroVideos } from "./HeroVideos";
+import { HeroSliderControls } from "./HeroSliderControls";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const HEADLINE = ["seu", "próximo", "grail", "tá", "aqui."];
@@ -17,25 +22,28 @@ const letterVariants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } },
 };
 
+// Blocos de apoio (tag, subtítulo, CTAs): `custom` é o delay de cada um.
+const fadeUpVariants = {
+  hidden: { opacity: 0, y: 16 },
+  show: (delay: number) => ({ opacity: 1, y: 0, transition: { duration: 0.5, delay, ease: EASE } }),
+};
+
 export function Hero() {
-  const [videoFailed, setVideoFailed] = useState(false);
+  const slider = useHeroSlider(HERO_VIDEOS);
+  // A entrada do texto espera a splash começar a sair (ver SplashScreen).
+  const revealed = useSyncExternalStore(subscribeSplash, getHomeRevealed, () => false);
+  const entrance = revealed ? "show" : "hidden";
 
   return (
     <section className="relative w-full h-[88svh] min-h-[600px] flex items-center justify-center overflow-hidden border-b border-line">
-      {/* Vídeo de fundo: coloque o arquivo em public/videos/hero-sneaker.mp4 */}
-      {!videoFailed && (
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          aria-hidden
-          className="absolute inset-0 w-full h-full object-cover opacity-35 contrast-125 motion-reduce:hidden"
-        >
-          <source src="/videos/hero-sneaker.mp4" type="video/mp4" onError={() => setVideoFailed(true)} />
-        </video>
-      )}
+      {/* Vídeos de fundo (lista em HERO_VIDEOS, src/lib/site.ts) */}
+      <HeroVideos
+        mounted={slider.mounted}
+        active={slider.active}
+        shown={slider.shown}
+        onReady={slider.markReady}
+        onFailed={slider.markFailed}
+      />
 
       {/* Overlay escuro em gradiente pra leitura do texto */}
       <div className="absolute inset-0 bg-linear-to-t from-background via-background/60 to-background/30" />
@@ -59,11 +67,12 @@ export function Hero() {
       </div>
 
       {/* Conteúdo */}
-      <div className="relative z-10 max-w-5xl mx-auto px-4 text-center flex flex-col items-center">
+      <div className="relative z-10 max-w-5xl mx-auto px-4 pb-12 lg:pb-0 text-center flex flex-col items-center">
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: EASE }}
+          variants={fadeUpVariants}
+          custom={0}
+          initial="hidden"
+          animate={entrance}
           className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm border border-wine/40 bg-wine/10 backdrop-blur-md mb-6"
         >
           <Sparkles className="w-3.5 h-3.5 text-wine-glow animate-pulse" aria-hidden />
@@ -77,7 +86,7 @@ export function Hero() {
           aria-label={HEADLINE.join(" ")}
           variants={headlineVariants}
           initial="hidden"
-          animate="show"
+          animate={entrance}
           className="font-display text-[2.6rem] sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight text-balance text-fg max-w-5xl leading-[1.05] mb-6"
         >
           {HEADLINE.map((word) => (
@@ -101,18 +110,20 @@ export function Hero() {
         </motion.h1>
 
         <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.7, ease: EASE }}
+          variants={fadeUpVariants}
+          custom={0.7}
+          initial="hidden"
+          animate={entrance}
           className="font-sans text-muted text-base sm:text-lg max-w-xl mb-9 leading-relaxed"
         >
           Curadoria de Nike, Jordan e Adidas pra quem vive a cena. Só peça original, só heat. Chegou, viu, copou.
         </motion.p>
 
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.85, ease: EASE }}
+          variants={fadeUpVariants}
+          custom={0.85}
+          initial="hidden"
+          animate={entrance}
           className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
         >
           <a
@@ -131,6 +142,14 @@ export function Hero() {
           </a>
         </motion.div>
       </div>
+
+      <HeroSliderControls
+        count={slider.count}
+        activeIndex={slider.activeIndex}
+        onPrevious={slider.previous}
+        onNext={slider.next}
+        onSelect={slider.goTo}
+      />
 
       {/* Rodapé técnico da hero */}
       <div className="absolute bottom-0 inset-x-0 z-10 border-t border-line/60">

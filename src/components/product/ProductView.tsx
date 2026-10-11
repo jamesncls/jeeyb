@@ -32,7 +32,7 @@ export async function ProductView({ slug }: { slug: string }) {
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14">
-          <ProductGallery images={product.images ?? []} name={product.name} />
+          <ProductGallery images={product.images ?? []} name={product.name} modelUrl={product.model_3d_url} />
 
           <div className="lg:sticky lg:top-28 lg:self-start space-y-8">
             <div>

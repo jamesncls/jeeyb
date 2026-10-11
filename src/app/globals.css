@@ -49,6 +49,20 @@
     }
   }
 
+  /* Reserva o espaço da barra de rolagem: travar o scroll (splash, gaveta) não desloca o layout */
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  /* Splash da home (SplashScreen): enquanto ela está na tela, sem scroll e sem o logo real
+     da Navbar, que só aparece quando o logo da splash chega no lugar dele */
+  html:has([data-splash-root]) {
+    overflow: hidden;
+  }
+  html:has([data-splash-root]) [data-splash-target] {
+    visibility: hidden;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-fg);

@@ -19,5 +19,7 @@ export interface Product {
   images: string[];
   description: string;
   featured: boolean;
+  // URL pública de um modelo .glb (ex: scan do Polycam) no bucket products.
+  model_3d_url?: string | null;
   created_at?: string;
 }

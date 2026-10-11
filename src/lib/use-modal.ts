@@ -2,6 +2,10 @@ import { useEffect, useRef } from "react";
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
+// Modais abertos, do mais antigo pro mais novo: só o de cima responde ao teclado
+// (ex: o modal de login aberto por cima da gaveta do carrinho).
+const openModals: object[] = [];
+
 // Comportamento comum de modal/gaveta: Esc fecha, trava o scroll da página,
 // prende o Tab dentro do painel e devolve o foco pra quem abriu.
 export function useModal<T extends HTMLElement>(open: boolean, onClose: () => void) {
@@ -10,12 +14,15 @@ export function useModal<T extends HTMLElement>(open: boolean, onClose: () => vo
   useEffect(() => {
     if (!open) return;
 
+    const token = {};
+    openModals.push(token);
     const previouslyFocused = document.activeElement as HTMLElement | null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     panelRef.current?.focus();
 
     const onKeyDown = (e: KeyboardEvent) => {
+      if (openModals[openModals.length - 1] !== token) return;
       if (e.key === "Escape") {
         onClose();
         return;
@@ -44,6 +51,7 @@ export function useModal<T extends HTMLElement>(open: boolean, onClose: () => vo
     window.addEventListener("keydown", onKeyDown);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
+      openModals.splice(openModals.indexOf(token), 1);
       document.body.style.overflow = previousOverflow;
       previouslyFocused?.focus?.();
     };

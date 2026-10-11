@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, MessageCircle, ShoppingBag, X } from "lucide-react";
 import { useCartStore } from "@/lib/cart-store";
@@ -8,7 +8,7 @@ import { formatPrice } from "@/lib/format";
 import { orderCode } from "@/lib/orders";
 import { useModal } from "@/lib/use-modal";
 import { CartItemRow } from "./CartItemRow";
-import { CheckoutForm } from "./CheckoutForm";
+import { CheckoutStep, SentOrder } from "./CheckoutStep";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -21,7 +21,8 @@ export function CartDrawer() {
 
   const step = useCartStore((state) => state.step);
   const setStep = useCartStore((state) => state.setStep);
-  const [sentOrder, setSentOrder] = useState<{ orderId: string; whatsappUrl: string } | null>(null);
+  const [sentOrder, setSentOrder] = useState<SentOrder | null>(null);
+  const backToCart = useCallback(() => setStep("cart"), [setStep]);
   const panelRef = useModal<HTMLDivElement>(isOpen, closeCart);
 
   // Lê o carrinho salvo no localStorage só depois do mount (ver skipHydration na store).
@@ -83,22 +84,33 @@ export function CartDrawer() {
               <div className="flex-1 flex flex-col items-center justify-center text-center px-8 gap-4">
                 <CheckCircle2 className="w-10 h-10 text-wine-glow" aria-hidden />
                 <h3 className="font-display text-2xl font-bold tracking-tight lowercase text-fg">
-                  pedido a caminho do whatsapp.
+                  {sentOrder.opened ? "pedido a caminho do whatsapp." : "pedido pronto. falta enviar."}
                 </h3>
                 <p className="font-sans text-sm text-muted leading-relaxed">
-                  É só apertar enviar na conversa que a gente confirma estoque, frete e pagamento com você.
+                  {sentOrder.opened
+                    ? "É só apertar enviar na conversa que a gente confirma estoque, frete e pagamento com você."
+                    : "Abre o WhatsApp no botão abaixo e aperta enviar: a gente confirma estoque, frete e pagamento com você."}
                 </p>
                 <span className="font-mono text-xs text-fg border border-line px-3 py-1.5 rounded-sm">
                   [ PEDIDO #{orderCode(sentOrder.orderId)} ]
                 </span>
+                {sentOrder.awaitingEmailConfirmation && (
+                  <p className="font-mono text-[11px] text-muted leading-relaxed border border-line/60 px-3 py-2 rounded-sm">
+                    Te mandamos um e-mail pra confirmar a conta. Confirmando, seus dados ficam salvos pro próximo pedido.
+                  </p>
+                )}
                 <a
                   href={sentOrder.whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-2 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-fg border border-line hover:border-wine hover:shadow-wine-glow px-4 py-3 rounded-sm transition-all duration-300"
+                  className={`mt-2 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider px-4 py-3 rounded-sm transition-all duration-300 ${
+                    sentOrder.opened
+                      ? "text-fg border border-line hover:border-wine hover:shadow-wine-glow"
+                      : "bg-wine hover:bg-wine-light text-white shadow-wine-glow"
+                  }`}
                 >
                   <MessageCircle className="w-4 h-4" aria-hidden />
-                  Não abriu? Abrir WhatsApp
+                  {sentOrder.opened ? "Não abriu? Abrir WhatsApp" : "Abrir WhatsApp"}
                 </a>
                 <button
                   type="button"
@@ -163,7 +175,7 @@ export function CartDrawer() {
               </>
             )}
 
-            {view === "checkout" && <CheckoutForm onBack={() => setStep("cart")} onDone={setSentOrder} />}
+            {view === "checkout" && <CheckoutStep onBack={backToCart} onDone={setSentOrder} />}
           </motion.div>
         </div>
       )}

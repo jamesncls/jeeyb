@@ -11,6 +11,10 @@ export const NAV_LINKS = [
   { href: "/admin", label: "// ADMIN" },
 ];
 
+// Vídeos de fundo da hero, na ordem do carrossel. Os arquivos ficam em public/videos/.
+// Arquivo que ainda não existe é ignorado: as setas e os indicadores só aparecem com 2+ vídeos no ar.
+export const HERO_VIDEOS = ["/videos/hero-sneaker.mp4", "/videos/hero-jacket.mp4"];
+
 export function whatsappLink(message?: string) {
   const base = `https://wa.me/${WHATSAPP_NUMBER}`;
   return message ? `${base}?text=${encodeURIComponent(message)}` : base;

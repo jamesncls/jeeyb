@@ -1,25 +1,47 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ShoppingBag, Search, User, Menu, X } from "lucide-react";
+import type { User as AuthUser } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
+import { AccountModal } from "@/components/account/AccountModal";
 import { useCartStore } from "@/lib/cart-store";
 import { NAV_LINKS } from "@/lib/site";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
+// Quem está logado: ninguém, um admin (vai pro painel) ou um cliente (abre "minha conta").
+type Account = { kind: "guest" } | { kind: "admin" } | { kind: "customer"; user: AuthUser };
+
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [account, setAccount] = useState<Account>({ kind: "guest" });
+  const [accountOpen, setAccountOpen] = useState(false);
+  const closeAccount = useCallback(() => setAccountOpen(false), []);
   const cartCount = useCartStore((state) => state.getTotalItems());
   const openCart = useCartStore((state) => state.openCart);
 
-  // Sessão do Supabase só decide pra onde o ícone de conta aponta; quem protege o /admin é o servidor.
+  // Sessão do Supabase só decide o que o ícone de conta faz; quem protege o /admin é o servidor.
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => setIsLoggedIn(!!session));
-    return () => data.subscription.unsubscribe();
+    let active = true;
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        setAccount({ kind: "guest" });
+        return;
+      }
+      // Fora do callback: chamar o Supabase aqui dentro trava o cliente de auth.
+      setTimeout(() => {
+        supabase.rpc("is_admin").then(({ data: isAdmin }) => {
+          if (active) setAccount(isAdmin === true ? { kind: "admin" } : { kind: "customer", user: session.user });
+        });
+      }, 0);
+    });
+    return () => {
+      active = false;
+      data.subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -31,7 +53,10 @@ export function Navbar() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [mobileMenuOpen]);
 
-  const accountHref = isLoggedIn ? "/admin" : "/admin/login";
+  const accountHref = account.kind === "admin" ? "/admin" : "/admin/login";
+  const accountLabel = account.kind === "admin" ? "[ PAINEL ]" : account.kind === "customer" ? "[ MINHA CONTA ]" : "[ ENTRAR ]";
+  const mobileItemClass =
+    "flex w-full items-center justify-between py-4 font-mono text-sm tracking-widest text-muted hover:text-fg transition-colors duration-300";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-line/60 bg-background/70 backdrop-blur-xl">
@@ -51,7 +76,8 @@ export function Navbar() {
 
         {/* Logo */}
         <Link href="/" aria-label="jeeyb — início" className="group flex items-center">
-          <span className="font-display text-2xl font-bold tracking-tighter text-fg">
+          {/* data-splash-target: é pra cá que o logo da splash da home encolhe */}
+          <span data-splash-target className="font-display text-2xl font-bold tracking-tighter text-fg">
             jeeyb
             <span className="text-wine transition-colors duration-300 group-hover:text-wine-glow">.</span>
           </span>
@@ -67,13 +93,25 @@ export function Navbar() {
             <Search className="w-5 h-5" />
           </Link>
 
-          <Link
-            href={accountHref}
-            aria-label={isLoggedIn ? "Painel admin" : "Entrar"}
-            className="hidden sm:block p-2 text-muted hover:text-fg transition-colors duration-300"
-          >
-            <User className="w-5 h-5" />
-          </Link>
+          {account.kind === "customer" ? (
+            <button
+              type="button"
+              aria-label="Minha conta"
+              aria-haspopup="dialog"
+              onClick={() => setAccountOpen(true)}
+              className="hidden sm:block p-2 text-wine-glow hover:text-fg transition-colors duration-300"
+            >
+              <User className="w-5 h-5" />
+            </button>
+          ) : (
+            <Link
+              href={accountHref}
+              aria-label={account.kind === "admin" ? "Painel admin" : "Entrar"}
+              className="hidden sm:block p-2 text-muted hover:text-fg transition-colors duration-300"
+            >
+              <User className="w-5 h-5" />
+            </Link>
+          )}
 
           <button
             type="button"
@@ -114,32 +152,49 @@ export function Navbar() {
             className="md:hidden absolute inset-x-0 top-full border-b border-line bg-background shadow-[0_24px_48px_rgba(0,0,0,0.6)]"
           >
             <ul className="px-4 py-4">
-              {[...NAV_LINKS, { href: accountHref, label: isLoggedIn ? "[ PAINEL ]" : "[ ENTRAR ]" }].map(
-                (link, index) => (
-                  <motion.li
-                    key={link.label}
-                    initial={{ opacity: 0, x: -12 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: 0.04 * index, ease: EASE }}
-                    className="border-b border-line/50 last:border-b-0"
-                  >
-                    <Link
-                      href={link.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center justify-between py-4 font-mono text-sm tracking-widest text-muted hover:text-fg transition-colors duration-300"
+              {[...NAV_LINKS, { href: accountHref, label: accountLabel }].map((link, index) => (
+                <motion.li
+                  key={link.label}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.04 * index, ease: EASE }}
+                  className="border-b border-line/50 last:border-b-0"
+                >
+                  {link.label === accountLabel && account.kind === "customer" ? (
+                    <button
+                      type="button"
+                      aria-haspopup="dialog"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setAccountOpen(true);
+                      }}
+                      className={mobileItemClass}
                     >
                       {link.label}
                       <span aria-hidden className="text-wine">
                         →
                       </span>
+                    </button>
+                  ) : (
+                    <Link href={link.href} onClick={() => setMobileMenuOpen(false)} className={mobileItemClass}>
+                      {link.label}
+                      <span aria-hidden className="text-wine">
+                        →
+                      </span>
                     </Link>
-                  </motion.li>
-                )
-              )}
+                  )}
+                </motion.li>
+              ))}
             </ul>
           </motion.nav>
         )}
       </AnimatePresence>
+
+      <AccountModal
+        user={account.kind === "customer" ? account.user : null}
+        open={accountOpen}
+        onClose={closeAccount}
+      />
     </header>
   );
 }
