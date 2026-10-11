@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { AlertTriangle, ArrowLeft, MessageCircle } from "lucide-react";
 import { useCartStore } from "@/lib/cart-store";
-import { formatPrice } from "@/lib/products";
-import { createOrderId, orderWhatsAppLink, saveOrder } from "@/lib/orders";
+import { formatPrice } from "@/lib/format";
+import { createOrderId, normalizePhone, orderWhatsAppLink, saveOrder } from "@/lib/orders";
 
 const INPUT =
   "w-full bg-background border border-line focus:border-wine px-3 py-2.5 text-sm rounded-sm outline-none transition-colors duration-300";
@@ -20,6 +20,7 @@ export function CheckoutForm({ onBack, onDone }: CheckoutFormProps) {
   const clearCart = useCartStore((state) => state.clearCart);
 
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [location, setLocation] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -30,10 +31,15 @@ export function CheckoutForm({ onBack, onDone }: CheckoutFormProps) {
       setErrorMsg("Preenche seu nome e sua cidade/UF pra gente fechar o pedido.");
       return;
     }
+    const normalizedPhone = normalizePhone(phone);
+    if (!normalizedPhone) {
+      setErrorMsg("Confere seu WhatsApp: precisa do DDD + número, tipo (47) 99999-9999.");
+      return;
+    }
 
     const order = {
       id: createOrderId(),
-      customer: { name: name.trim(), location: location.trim() },
+      customer: { name: name.trim(), location: location.trim(), phone: normalizedPhone },
       items,
       total,
     };
@@ -94,6 +100,22 @@ export function CheckoutForm({ onBack, onDone }: CheckoutFormProps) {
             placeholder="Como a gente te chama?"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            className={INPUT}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="checkout-phone" className="block font-mono text-xs text-muted mb-1">
+            {"// SEU WHATSAPP"}
+          </label>
+          <input
+            id="checkout-phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel-national"
+            placeholder="(47) 99999-9999"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
             className={INPUT}
           />
         </div>

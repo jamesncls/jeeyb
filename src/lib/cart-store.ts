@@ -4,6 +4,8 @@ import type { Product } from "@/lib/supabase";
 
 export const ONE_SIZE = "Único";
 
+export type CartStep = "cart" | "checkout";
+
 export interface CartItem {
   product: Product;
   selectedSize: string;
@@ -14,6 +16,7 @@ interface CartState {
   items: CartItem[];
   // UI (não persistido)
   isOpen: boolean;
+  step: CartStep;
   sizePickerProduct: Product | null;
 
   addItem: (product: Product, selectedSize: string, quantity?: number) => void;
@@ -24,6 +27,9 @@ interface CartState {
   getTotalPrice: () => number;
 
   openCart: () => void;
+  // Abre a gaveta já no formulário de checkout ("comprar agora").
+  openCheckout: () => void;
+  setStep: (step: CartStep) => void;
   closeCart: () => void;
   // Clique no "COP": com vários tamanhos abre o seletor, senão já adiciona.
   requestAdd: (product: Product) => void;
@@ -38,6 +44,7 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       items: [],
       isOpen: false,
+      step: "cart",
       sizePickerProduct: null,
 
       addItem: (product, selectedSize, quantity = 1) =>
@@ -78,6 +85,8 @@ export const useCartStore = create<CartState>()(
       getTotalPrice: () => get().items.reduce((total, item) => total + item.product.price * item.quantity, 0),
 
       openCart: () => set({ isOpen: true }),
+      openCheckout: () => set({ isOpen: true, step: "checkout" }),
+      setStep: (step) => set({ step }),
       closeCart: () => set({ isOpen: false }),
 
       requestAdd: (product) => {

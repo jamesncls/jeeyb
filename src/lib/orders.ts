@@ -1,11 +1,51 @@
 import { supabase } from "@/lib/supabase";
-import { formatPrice } from "@/lib/products";
+import { formatPrice } from "@/lib/format";
 import { whatsappLink } from "@/lib/site";
 import type { CartItem } from "@/lib/cart-store";
 
 export interface OrderCustomer {
   name: string;
   location: string;
+  // Só dígitos, com DDI (ex: 5547988503312). É o que o admin usa pra chamar o cliente.
+  phone: string;
+}
+
+export const ORDER_STATUSES = ["pending", "confirmed", "shipped", "delivered"] as const;
+export type OrderStatus = (typeof ORDER_STATUSES)[number];
+
+export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  pending: "Pendente",
+  confirmed: "Confirmado",
+  shipped: "Enviado",
+  delivered: "Entregue",
+};
+
+export interface OrderItem {
+  product_id: string;
+  name: string;
+  brand: string;
+  size: string;
+  quantity: number;
+  unit_price: number;
+}
+
+// Linha da tabela public.orders (pedidos antigos podem não ter phone).
+export interface Order {
+  id: string;
+  user_id: string | null;
+  customer: Partial<OrderCustomer> | null;
+  items: OrderItem[] | null;
+  total: number;
+  status: OrderStatus;
+  created_at: string;
+}
+
+// "(47) 98850-3312" → "5547988503312". Devolve null se não parecer um celular/fixo BR com DDD.
+export function normalizePhone(input: string) {
+  const digits = input.replace(/\D/g, "").replace(/^0+/, "");
+  if (digits.length === 10 || digits.length === 11) return `55${digits}`;
+  if ((digits.length === 12 || digits.length === 13) && digits.startsWith("55")) return digits;
+  return null;
 }
 
 export interface OrderDraft {

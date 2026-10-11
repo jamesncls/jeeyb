@@ -57,7 +57,3 @@ export function useProducts() {
 
   return { products, status, retry };
 }
-
-export function formatPrice(price: number) {
-  return price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}

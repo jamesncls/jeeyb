@@ -2,7 +2,7 @@
 
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { CartItem, useCartStore } from "@/lib/cart-store";
-import { formatPrice } from "@/lib/products";
+import { formatPrice } from "@/lib/format";
 import { ProductImage } from "@/components/shop/ProductImage";
 
 const STEP_BUTTON =

@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { ShoppingBag } from "lucide-react";
 import { Product } from "@/lib/supabase";
-import { formatPrice } from "@/lib/products";
+import { formatPrice } from "@/lib/format";
 import { useCartStore } from "@/lib/cart-store";
 import { ProductImage } from "./ProductImage";
 
@@ -19,6 +20,7 @@ export function ProductCard({ product }: { product: Product }) {
   const requestAdd = useCartStore((state) => state.requestAdd);
   const sizes = product.sizes ?? [];
   const hiddenSizes = sizes.length - MAX_SIZES_SHOWN;
+  const href = `/product/${product.slug}`;
 
   return (
     <motion.article
@@ -26,7 +28,11 @@ export function ProductCard({ product }: { product: Product }) {
       className="group relative flex flex-col bg-surface border border-line hover:border-wine/60 hover:shadow-wine-glow rounded-sm overflow-hidden transition-[border-color,box-shadow] duration-300"
     >
       {/* Imagem quadrada: zoom leve no hover e troca pra 2ª foto se existir */}
-      <div className="relative w-full aspect-square bg-background overflow-hidden">
+      <Link
+        href={href}
+        aria-label={`Ver ${product.name}`}
+        className="relative block w-full aspect-square bg-background overflow-hidden"
+      >
         <ProductImage
           src={product.images?.[0]}
           alt={product.name}
@@ -42,11 +48,11 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="absolute top-3 left-3 bg-background/80 backdrop-blur-md border border-line px-2.5 py-1 rounded-sm">
           <span className="font-mono text-[10px] uppercase text-fg tracking-widest">[ {product.brand} ]</span>
         </div>
-      </div>
+      </Link>
 
       <div className="flex flex-1 flex-col gap-4 p-4">
         <h3 className="font-display font-bold text-base text-fg group-hover:text-wine-glow transition-colors duration-300 line-clamp-2">
-          {product.name}
+          <Link href={href}>{product.name}</Link>
         </h3>
 
         {/* Tamanhos disponíveis */}

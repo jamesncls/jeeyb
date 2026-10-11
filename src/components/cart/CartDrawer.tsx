@@ -4,15 +4,13 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, MessageCircle, ShoppingBag, X } from "lucide-react";
 import { useCartStore } from "@/lib/cart-store";
-import { formatPrice } from "@/lib/products";
+import { formatPrice } from "@/lib/format";
 import { orderCode } from "@/lib/orders";
 import { useModal } from "@/lib/use-modal";
 import { CartItemRow } from "./CartItemRow";
 import { CheckoutForm } from "./CheckoutForm";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
-
-type Step = "cart" | "checkout";
 
 export function CartDrawer() {
   const isOpen = useCartStore((state) => state.isOpen);
@@ -21,7 +19,8 @@ export function CartDrawer() {
   const totalItems = useCartStore((state) => state.getTotalItems());
   const totalPrice = useCartStore((state) => state.getTotalPrice());
 
-  const [step, setStep] = useState<Step>("cart");
+  const step = useCartStore((state) => state.step);
+  const setStep = useCartStore((state) => state.setStep);
   const [sentOrder, setSentOrder] = useState<{ orderId: string; whatsappUrl: string } | null>(null);
   const panelRef = useModal<HTMLDivElement>(isOpen, closeCart);
 

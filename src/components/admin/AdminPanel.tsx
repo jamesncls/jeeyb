@@ -3,6 +3,14 @@
 import { useState, useEffect } from "react";
 import { supabase, Product } from "@/lib/supabase";
 import { Plus, Upload, Trash2, CheckCircle2, Image as ImageIcon, LogOut } from "lucide-react";
+import { refreshProductsCache } from "@/app/admin/actions";
+import { OrdersPanel } from "./OrdersPanel";
+
+const TABS = [
+  { id: "products", label: "PRODUTOS" },
+  { id: "orders", label: "📦 PEDIDOS / ORDERS" },
+] as const;
+type AdminTab = (typeof TABS)[number]["id"];
 
 export function AdminPanel({ adminEmail }: { adminEmail: string }) {
   const [products, setProducts] = useState<Product[]>([]);
@@ -10,6 +18,7 @@ export function AdminPanel({ adminEmail }: { adminEmail: string }) {
   const [uploading, setUploading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [signingOut, setSigningOut] = useState(false);
+  const [tab, setTab] = useState<AdminTab>("products");
 
   // Form State
   const [name, setName] = useState("");
@@ -105,6 +114,7 @@ export function AdminPanel({ adminEmail }: { adminEmail: string }) {
       setDescription("");
       setImages([]);
       fetchProducts();
+      void refreshProductsCache();
       setTimeout(() => setSuccessMsg(""), 4000);
     }
   }
@@ -113,6 +123,7 @@ export function AdminPanel({ adminEmail }: { adminEmail: string }) {
     if (!confirm("Tem certeza que quer apagar esse produto?")) return;
     await supabase.from("products").delete().eq("id", id);
     fetchProducts();
+    void refreshProductsCache();
   }
 
   async function handleLogout() {
@@ -128,7 +139,7 @@ export function AdminPanel({ adminEmail }: { adminEmail: string }) {
         <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-line pb-6 mb-8">
           <div>
             <span className="font-mono text-xs text-wine-light tracking-widest">// MANAGEMENT HUB</span>
-            <h1 className="font-display text-3xl font-bold">Painel de Produtos — jeeyb</h1>
+            <h1 className="font-display text-3xl font-bold">Painel Admin — jeeyb</h1>
             <p className="font-mono text-xs text-muted mt-1 break-all">[ ADMIN ] {adminEmail}</p>
           </div>
           <div className="flex items-center gap-3">
@@ -147,13 +158,38 @@ export function AdminPanel({ adminEmail }: { adminEmail: string }) {
           </div>
         </header>
 
-        {successMsg && (
+        <div role="tablist" aria-label="Seções do painel" className="flex gap-2 mb-8 overflow-x-auto">
+          {TABS.map((item) => {
+            const active = item.id === tab;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setTab(item.id)}
+                className={`shrink-0 font-mono text-xs uppercase tracking-wider px-4 py-2.5 rounded-sm border transition-all duration-300 ${
+                  active
+                    ? "border-wine bg-wine/20 text-fg shadow-wine-subtle"
+                    : "border-line bg-surface text-muted hover:border-wine/60 hover:text-fg"
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {tab === "orders" && <OrdersPanel />}
+
+        {tab === "products" && successMsg && (
           <div className="mb-6 p-4 bg-wine/20 border border-wine/50 rounded-sm text-wine-glow flex items-center gap-2 font-mono text-sm">
             <CheckCircle2 className="w-5 h-5" />
             {successMsg}
           </div>
         )}
 
+        {tab === "products" && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* FORMULÁRIO DE CADASTRO */}
           <div className="lg:col-span-5 bg-surface p-6 rounded-sm border border-line h-fit">
@@ -333,6 +369,7 @@ export function AdminPanel({ adminEmail }: { adminEmail: string }) {
             )}
           </div>
         </div>
+        )}
       </div>
     </div>
   );

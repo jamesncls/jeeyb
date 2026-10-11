@@ -4,7 +4,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ShoppingBag, X } from "lucide-react";
 import { useCartStore } from "@/lib/cart-store";
-import { formatPrice } from "@/lib/products";
+import { formatPrice } from "@/lib/format";
 import { useModal } from "@/lib/use-modal";
 import { ProductImage } from "@/components/shop/ProductImage";
 

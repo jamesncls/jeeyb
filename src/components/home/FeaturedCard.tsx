@@ -1,14 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
 import { Product } from "@/lib/supabase";
-import { formatPrice } from "@/lib/products";
+import { formatPrice } from "@/lib/format";
 import { useCartStore } from "@/lib/cart-store";
 import { ProductImage } from "@/components/shop/ProductImage";
 
 // `wide`: card único ocupando a linha toda, com foto e texto lado a lado no desktop.
 export function FeaturedCard({ product, wide = false }: { product: Product; wide?: boolean }) {
   const requestAdd = useCartStore((state) => state.requestAdd);
+  const href = `/product/${product.slug}`;
 
   return (
     <article
@@ -16,8 +18,10 @@ export function FeaturedCard({ product, wide = false }: { product: Product; wide
         wide ? "lg:flex-row" : ""
       }`}
     >
-      <div
-        className={`relative overflow-hidden bg-background aspect-[4/3] ${wide ? "lg:w-3/5 lg:aspect-[16/10]" : ""}`}
+      <Link
+        href={href}
+        aria-label={`Ver ${product.name}`}
+        className={`relative block overflow-hidden bg-background aspect-[4/3] ${wide ? "lg:w-3/5 lg:aspect-[16/10]" : ""}`}
       >
         <ProductImage
           src={product.images?.[0]}
@@ -28,7 +32,7 @@ export function FeaturedCard({ product, wide = false }: { product: Product; wide
         <div className="absolute top-3 left-3 bg-wine/90 backdrop-blur-md border border-wine-light px-2.5 py-1 rounded-sm">
           <span className="font-mono text-[10px] uppercase text-white tracking-widest">[ HYPED DROP ]</span>
         </div>
-      </div>
+      </Link>
 
       <div className={`flex flex-1 flex-col justify-between gap-6 p-5 sm:p-6 ${wide ? "lg:p-10" : ""}`}>
         <div>
@@ -40,7 +44,9 @@ export function FeaturedCard({ product, wide = false }: { product: Product; wide
               wide ? "lg:text-4xl" : ""
             }`}
           >
-            {product.name}
+            <Link href={href} className="hover:text-wine-glow transition-colors duration-300">
+              {product.name}
+            </Link>
           </h3>
           {product.description && (
             <p className="font-sans text-sm text-muted mt-3 line-clamp-2 leading-relaxed">{product.description}</p>
