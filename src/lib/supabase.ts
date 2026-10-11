@@ -19,7 +19,8 @@ export interface Product {
   images: string[];
   description: string;
   featured: boolean;
-  // URL pública de um modelo .glb (ex: scan do Polycam) no bucket products.
+  // URL pública do vídeo 360° interativo (.mp4/.webm) no bucket products.
+  // O nome da coluna vem de quando o plano era um modelo 3D.
   model_3d_url?: string | null;
   created_at?: string;
 }

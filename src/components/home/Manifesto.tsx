@@ -43,7 +43,7 @@ export function Manifesto() {
               A jeeyb é James &amp; Bruno, daí o nome. Dois nomes, uma regra: só entra na loja o que a gente usaria.
             </p>
             <p>
-              Skate, rap, trap, eletrônica. É dessa cena que sai cada escolha: tênis, casaco e acessório com
+              tênis, casaco e acessório com
               história, não só com etiqueta.
             </p>
             <p className="text-fg">Sem réplica. Sem enrolação. Só grail.</p>

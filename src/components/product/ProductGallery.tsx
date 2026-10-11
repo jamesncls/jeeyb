@@ -1,46 +1,44 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Box } from "lucide-react";
+import { Rotate3d } from "lucide-react";
 import { ProductImage } from "@/components/shop/ProductImage";
-import { ModelViewer3D } from "./ModelViewer3D";
+import { Interactive360Video } from "./Interactive360Video";
 
-const MODEL = "model";
+const VIDEO_360 = "video-360";
 
 interface ProductGalleryProps {
   images: string[];
   name: string;
-  modelUrl?: string | null;
+  video360Url?: string | null;
 }
 
-// Mídia principal grande + miniaturas clicáveis. Com modelo 3D, ele é a primeira mídia.
-export function ProductGallery({ images, name, modelUrl }: ProductGalleryProps) {
-  const [modelFailed, setModelFailed] = useState(false);
-  const handleModelError = useCallback(() => setModelFailed(true), []);
+// Mídia principal grande + miniaturas clicáveis. Com vídeo 360°, ele é a primeira mídia.
+export function ProductGallery({ images, name, video360Url }: ProductGalleryProps) {
+  const [videoFailed, setVideoFailed] = useState(false);
+  const handleVideoError = useCallback(() => setVideoFailed(true), []);
 
-  const hasModel = !!modelUrl && !modelFailed;
-  const media = hasModel ? [MODEL, ...images] : images;
+  const hasVideo = !!video360Url && !videoFailed;
+  const media = hasVideo ? [VIDEO_360, ...images] : images;
 
   const [activeIndex, setActiveIndex] = useState(0);
   const active = media[Math.min(activeIndex, Math.max(media.length - 1, 0))];
-  const showingModel = hasModel && active === MODEL;
+  const showingVideo = hasVideo && active === VIDEO_360;
 
   return (
     <div className="flex flex-col gap-3">
       <div className="relative w-full aspect-square bg-surface border border-line rounded-sm overflow-hidden">
-        {showingModel && modelUrl ? (
+        {showingVideo && video360Url ? (
           <>
-            {/* Glow vinho atrás do modelo */}
-            <div className="absolute inset-0 bg-radial from-wine/25 via-transparent to-transparent pointer-events-none" />
-            <div className="absolute inset-0">
-              <ModelViewer3D src={modelUrl} alt={`Modelo 3D: ${name}`} poster={images[0]} onError={handleModelError} />
-            </div>
+            <Interactive360Video
+              src={video360Url}
+              label={`Giro 360° de ${name}`}
+              poster={images[0]}
+              onError={handleVideoError}
+            />
             <div className="absolute top-3 left-3 bg-wine/90 backdrop-blur-md border border-wine-light px-2.5 py-1 rounded-sm pointer-events-none">
               <span className="font-mono text-[10px] uppercase text-white tracking-widest">[ 360° INTERATIVO ]</span>
             </div>
-            <p className="absolute bottom-3 inset-x-3 text-center font-mono text-[10px] uppercase tracking-widest text-muted pointer-events-none">
-              ARRASTE PRA GIRAR · SCROLL OU PINÇA PRA ZOOM
-            </p>
           </>
         ) : (
           <ProductImage key={active} src={active} alt={name} sizes="(min-width: 1024px) 50vw, 100vw" priority />
@@ -51,12 +49,12 @@ export function ProductGallery({ images, name, modelUrl }: ProductGalleryProps) 
         <ul className="grid grid-cols-5 gap-2 sm:gap-3">
           {media.map((item, index) => {
             const selected = item === active;
-            const isModel = hasModel && item === MODEL;
+            const isVideo = hasVideo && item === VIDEO_360;
             return (
               <li key={item}>
                 <button
                   type="button"
-                  aria-label={isModel ? "Ver modelo 3D" : `Ver foto ${hasModel ? index : index + 1} de ${images.length}`}
+                  aria-label={isVideo ? "Ver giro 360°" : `Ver foto ${hasVideo ? index : index + 1} de ${images.length}`}
                   aria-pressed={selected}
                   onClick={() => setActiveIndex(index)}
                   className={`relative block w-full aspect-square bg-surface rounded-sm overflow-hidden border transition-all duration-300 ${
@@ -65,10 +63,10 @@ export function ProductGallery({ images, name, modelUrl }: ProductGalleryProps) 
                       : "border-line opacity-60 hover:opacity-100 hover:border-wine/60"
                   }`}
                 >
-                  {isModel ? (
+                  {isVideo ? (
                     <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-wine-glow">
-                      <Box className="w-5 h-5" aria-hidden />
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-fg">3D</span>
+                      <Rotate3d className="w-5 h-5" aria-hidden />
+                      <span className="font-mono text-[10px] uppercase tracking-widest text-fg">360°</span>
                     </span>
                   ) : (
                     <ProductImage src={item} alt="" sizes="(min-width: 1024px) 10vw, 20vw" />

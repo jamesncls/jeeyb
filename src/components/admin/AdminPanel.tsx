@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { supabase, Product } from "@/lib/supabase";
-import { Plus, Upload, Trash2, CheckCircle2, Image as ImageIcon, LogOut, Box, X } from "lucide-react";
-import { MODEL_ACCEPT, uploadProductModel } from "@/lib/product-media";
-import { ProductModelControl } from "./ProductModelControl";
+import { Plus, Upload, Trash2, CheckCircle2, Image as ImageIcon, LogOut, Rotate3d, X } from "lucide-react";
+import { VIDEO_360_ACCEPT, uploadProduct360Video } from "@/lib/product-media";
+import { Product360Control } from "./Product360Control";
 import { refreshProductsCache } from "@/app/admin/actions";
 import { OrdersPanel } from "./OrdersPanel";
 
@@ -31,8 +31,8 @@ export function AdminPanel({ adminEmail }: { adminEmail: string }) {
   const [sizes, setSizes] = useState("38, 39, 40, 41, 42, 43");
   const [featured, setFeatured] = useState(false);
   const [images, setImages] = useState<string[]>([]);
-  const [modelUrl, setModelUrl] = useState("");
-  const [modelUploading, setModelUploading] = useState(false);
+  const [video360Url, setVideo360Url] = useState("");
+  const [video360Uploading, setVideo360Uploading] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -72,17 +72,17 @@ export function AdminPanel({ adminEmail }: { adminEmail: string }) {
     setUploading(false);
   }
 
-  // Upload do modelo 3D (.glb) do produto novo
-  async function handleModelUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  // Upload do vídeo 360° (.mp4/.webm) do produto novo
+  async function handleVideo360Upload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
 
-    setModelUploading(true);
-    const result = await uploadProductModel(file);
+    setVideo360Uploading(true);
+    const result = await uploadProduct360Video(file);
     if ("error" in result) alert(result.error);
-    else setModelUrl(result.url);
-    setModelUploading(false);
+    else setVideo360Url(result.url);
+    setVideo360Uploading(false);
   }
 
   function slugify(text: string) {
@@ -116,7 +116,7 @@ export function AdminPanel({ adminEmail }: { adminEmail: string }) {
         images,
         description,
         featured,
-        ...(modelUrl ? { model_3d_url: modelUrl } : {}),
+        ...(video360Url ? { model_3d_url: video360Url } : {}),
       },
     ]);
 
@@ -131,7 +131,7 @@ export function AdminPanel({ adminEmail }: { adminEmail: string }) {
       setPrice("");
       setDescription("");
       setImages([]);
-      setModelUrl("");
+      setVideo360Url("");
       fetchProducts();
       void refreshProductsCache();
       setTimeout(() => setSuccessMsg(""), 4000);
@@ -312,17 +312,17 @@ export function AdminPanel({ adminEmail }: { adminEmail: string }) {
               </div>
 
               <div>
-                <label className="block font-mono text-xs text-muted mb-1">{"// MODELO 3D (.GLB) — OPCIONAL"}</label>
-                {modelUrl ? (
+                <label className="block font-mono text-xs text-muted mb-1">{"// VÍDEO 360° (.MP4) — OPCIONAL"}</label>
+                {video360Url ? (
                   <div className="flex items-center justify-between gap-3 border border-wine/60 bg-wine/15 px-3 py-2.5 rounded-sm">
                     <span className="inline-flex items-center gap-2 font-mono text-xs text-fg">
-                      <Box className="w-4 h-4 text-wine-glow" />
-                      [ MODELO 3D PRONTO ]
+                      <Rotate3d className="w-4 h-4 text-wine-glow" />
+                      [ VÍDEO 360° PRONTO ]
                     </span>
                     <button
                       type="button"
-                      onClick={() => setModelUrl("")}
-                      aria-label="Tirar modelo 3D"
+                      onClick={() => setVideo360Url("")}
+                      aria-label="Tirar vídeo 360°"
                       className="p-1 text-muted hover:text-wine-glow transition-colors"
                     >
                       <X className="w-4 h-4" />
@@ -332,15 +332,15 @@ export function AdminPanel({ adminEmail }: { adminEmail: string }) {
                   <div className="relative border-2 border-dashed border-line hover:border-wine p-4 rounded-sm text-center cursor-pointer transition-colors bg-background">
                     <input
                       type="file"
-                      accept={MODEL_ACCEPT}
-                      onChange={handleModelUpload}
-                      disabled={modelUploading}
-                      aria-label="Enviar modelo 3D (.glb)"
+                      accept={VIDEO_360_ACCEPT}
+                      onChange={handleVideo360Upload}
+                      disabled={video360Uploading}
+                      aria-label="Enviar vídeo 360° (.mp4 ou .webm)"
                       className="absolute inset-0 opacity-0 cursor-pointer"
                     />
-                    <Box className="w-5 h-5 mx-auto text-muted mb-1.5" />
+                    <Rotate3d className="w-5 h-5 mx-auto text-muted mb-1.5" />
                     <span className="font-mono text-xs text-muted">
-                      {modelUploading ? "Enviando modelo 3D..." : "Scan do Polycam em .glb (vira o viewer 360° do produto)"}
+                      {video360Uploading ? "Enviando vídeo 360°..." : "Giro completo do produto em .mp4 ou .webm (o cliente arrasta pra girar)"}
                     </span>
                   </div>
                 )}
@@ -372,7 +372,7 @@ export function AdminPanel({ adminEmail }: { adminEmail: string }) {
 
               <button
                 type="submit"
-                disabled={loading || uploading || modelUploading}
+                disabled={loading || uploading || video360Uploading}
                 className="w-full bg-wine hover:bg-wine-light text-white font-mono text-xs uppercase tracking-wider py-3 rounded-sm transition-all shadow-wine-glow disabled:opacity-50"
               >
                 {loading ? "CADASTRANDO..." : "PUBLICAR PRODUTO"}
@@ -411,7 +411,7 @@ export function AdminPanel({ adminEmail }: { adminEmail: string }) {
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
-                      <ProductModelControl
+                      <Product360Control
                         product={p}
                         onChanged={() => {
                           fetchProducts();
