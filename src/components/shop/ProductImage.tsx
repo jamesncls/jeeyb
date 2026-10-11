@@ -12,11 +12,12 @@ interface ProductImageProps {
   sizes: string;
   className?: string;
   priority?: boolean;
+  onLoad?: (image: HTMLImageElement) => void;
 }
 
 // Preenche o container pai (que precisa ser `relative` e ter proporção definida).
 // Sem foto, ou se a foto falhar ao carregar, mostra o placeholder.
-export function ProductImage({ src, alt, sizes, className = "", priority = false }: ProductImageProps) {
+export function ProductImage({ src, alt, sizes, className = "", priority = false, onLoad }: ProductImageProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
   if (!src || failedSrc === src) {
@@ -38,6 +39,7 @@ export function ProductImage({ src, alt, sizes, className = "", priority = false
       // Só o Storage do Supabase está liberado no otimizador; outras URLs vão direto.
       unoptimized={!src.startsWith(STORAGE_PREFIX)}
       onError={() => setFailedSrc(src)}
+      onLoad={onLoad ? (e) => onLoad(e.currentTarget) : undefined}
       className={`object-cover ${className}`}
     />
   );

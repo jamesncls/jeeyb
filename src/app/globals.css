@@ -91,3 +91,12 @@
     background: var(--color-wine);
   }
 }
+
+/* Dissolve as quatro bordas de um elemento (linear, sem recorte redondo): usado no vídeo 360° do
+   produto, pra ele se fundir com o fundo desfocado em vez de aparecer como um retângulo. */
+@utility edge-feather {
+  mask-image:
+    linear-gradient(to right, transparent, black 18%, black 82%, transparent),
+    linear-gradient(to bottom, transparent, black 16%, black 84%, transparent);
+  mask-composite: intersect;
+}

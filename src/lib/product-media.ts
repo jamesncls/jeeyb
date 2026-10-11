@@ -28,3 +28,15 @@ export async function uploadProduct360Video(file: File): Promise<{ url: string }
   }
   return { url: supabase.storage.from("products").getPublicUrl(path).data.publicUrl };
 }
+
+// Sobe uma foto de produto pro bucket products e devolve a URL pública.
+export async function uploadProductImage(file: File): Promise<{ url: string } | { error: string }> {
+  const extension = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+  const path = `${Date.now()}-${Math.random().toString(36).substring(2)}.${extension}`;
+  const { error } = await supabase.storage.from("products").upload(path, file);
+
+  if (error) {
+    return { error: `Não deu pra enviar a foto ${file.name}: ${error.message}` };
+  }
+  return { url: supabase.storage.from("products").getPublicUrl(path).data.publicUrl };
+}

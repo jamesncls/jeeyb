@@ -7,9 +7,11 @@ import { ONE_SIZE, useCartStore } from "@/lib/cart-store";
 
 const MAX_QUANTITY = 10;
 const STEP_BUTTON =
-  "w-11 h-11 flex items-center justify-center text-muted hover:text-fg hover:bg-surface2 disabled:opacity-30 disabled:hover:bg-transparent transition-colors duration-300";
+  "w-10 h-10 flex items-center justify-center rounded-sm border border-line text-fg/70 hover:text-fg hover:border-wine hover:shadow-wine-subtle disabled:opacity-30 disabled:hover:border-line disabled:hover:shadow-none transition-all duration-300";
+const LABEL = "font-mono text-xs uppercase tracking-widest text-fg/60";
 
 // Tamanho + quantidade + os dois botões de compra da página de produto.
+// Tudo flutua direto sobre o cenário: sem caixas nem fundos, só borda fina que acende em vinho.
 export function ProductPurchase({ product }: { product: Product }) {
   const addItem = useCartStore((state) => state.addItem);
   const openCart = useCartStore((state) => state.openCart);
@@ -34,8 +36,8 @@ export function ProductPurchase({ product }: { product: Product }) {
     <div className="space-y-6">
       {sizes.length > 0 && (
         <fieldset>
-          <legend className="flex w-full items-center justify-between font-mono text-xs uppercase tracking-widest mb-3">
-            <span className="text-muted">{"// TAMANHO"}</span>
+          <legend className={`flex w-full items-center gap-3 mb-3 ${LABEL}`}>
+            <span>{"// TAMANHO"}</span>
             {selectedSize && <span className="text-fg">[ {selectedSize} ]</span>}
           </legend>
           <div className="flex flex-wrap gap-2">
@@ -50,10 +52,10 @@ export function ProductPurchase({ product }: { product: Product }) {
                     setSelectedSize(size);
                     setSizeMissing(false);
                   }}
-                  className={`min-w-12 px-3 py-3 font-mono text-sm rounded-sm border transition-all duration-300 active:scale-95 ${
+                  className={`min-w-12 px-3 py-2.5 font-mono text-sm rounded-sm border transition-all duration-300 active:scale-95 ${
                     active
-                      ? "border-wine bg-wine/20 text-fg shadow-wine-subtle"
-                      : "border-line bg-surface text-muted hover:border-wine/60 hover:text-fg"
+                      ? "border-wine-glow bg-wine/25 text-fg shadow-wine-glow"
+                      : "border-line text-fg/75 hover:border-wine hover:text-fg hover:shadow-wine-subtle"
                   }`}
                 >
                   {size}
@@ -70,8 +72,8 @@ export function ProductPurchase({ product }: { product: Product }) {
       )}
 
       <div>
-        <span className="block font-mono text-xs text-muted uppercase tracking-widest mb-3">{"// QUANTIDADE"}</span>
-        <div className="inline-flex items-center border border-line rounded-sm bg-surface">
+        <span className={`block mb-3 ${LABEL}`}>{"// QUANTIDADE"}</span>
+        <div className="inline-flex items-center gap-1">
           <button
             type="button"
             aria-label="Diminuir quantidade"
@@ -81,7 +83,7 @@ export function ProductPurchase({ product }: { product: Product }) {
           >
             <Minus className="w-4 h-4" />
           </button>
-          <span aria-live="polite" className="w-12 text-center font-mono text-base text-fg">
+          <span aria-live="polite" className="w-12 text-center font-mono text-lg text-fg">
             {quantity}
           </span>
           <button
@@ -96,14 +98,14 @@ export function ProductPurchase({ product }: { product: Product }) {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-3 pt-1">
         <button
           type="button"
           aria-haspopup="dialog"
           onClick={() => {
             if (addToCart()) openCart();
           }}
-          className="flex-1 inline-flex items-center justify-center gap-2 bg-surface hover:bg-surface2 border border-line hover:border-wine/60 hover:shadow-wine-glow text-fg font-mono text-xs uppercase tracking-wider px-6 py-4 rounded-sm transition-all duration-300 active:scale-[0.98]"
+          className="flex-1 inline-flex items-center justify-center gap-2 whitespace-nowrap border border-wine/50 hover:border-wine-glow shadow-wine-subtle hover:shadow-wine-glow text-fg font-mono text-xs uppercase tracking-wider px-4 py-4 rounded-sm transition-all duration-300 active:scale-[0.98]"
         >
           <ShoppingBag className="w-4 h-4" aria-hidden />
           Adicionar ao carrinho
@@ -114,7 +116,7 @@ export function ProductPurchase({ product }: { product: Product }) {
           onClick={() => {
             if (addToCart()) openCheckout();
           }}
-          className="flex-1 inline-flex items-center justify-center gap-2 bg-wine hover:bg-wine-light text-white font-mono text-xs uppercase tracking-wider px-6 py-4 rounded-sm shadow-wine-glow transition-all duration-300 active:scale-[0.98]"
+          className="flex-1 inline-flex items-center justify-center gap-2 whitespace-nowrap bg-wine hover:bg-wine-light text-white font-mono text-xs uppercase tracking-wider px-4 py-4 rounded-sm shadow-wine-glow transition-all duration-300 active:scale-[0.98]"
         >
           <Zap className="w-4 h-4" aria-hidden />
           Comprar agora

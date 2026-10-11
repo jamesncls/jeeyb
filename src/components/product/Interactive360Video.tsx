@@ -18,11 +18,23 @@ interface Interactive360VideoProps {
   // Foto mostrada enquanto o vídeo carrega.
   poster?: string;
   onError: () => void;
+  // Classes do <video>: tamanho e enquadramento do produto dentro da área de arrasto.
+  mediaClassName?: string;
+  // Classes da linha da dica ("Arraste para girar"), pra alinhar com o produto quando ele não está no centro.
+  hintClassName?: string;
 }
 
 // Giro 360° controlado pelo dedo/mouse: o vídeo nunca toca sozinho, o arrasto horizontal
-// é que move o currentTime. Preenche o container pai.
-export function Interactive360Video({ src, label, poster, onError }: Interactive360VideoProps) {
+// é que move o currentTime. A área de arrasto preenche o container pai inteiro; o vídeo fica
+// centralizado dentro dela, no tamanho que `mediaClassName` der.
+export function Interactive360Video({
+  src,
+  label,
+  poster,
+  onError,
+  mediaClassName = "w-full h-full object-cover",
+  hintClassName = "",
+}: Interactive360VideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const drag = useRef<{ pointerId: number; startX: number; startTime: number } | null>(null);
   // Tempo pedido pelo arrasto. Só o mais recente importa: se o vídeo ainda está buscando o
@@ -130,7 +142,7 @@ export function Interactive360Video({ src, label, poster, onError }: Interactive
       onPointerCancel={handlePointerEnd}
       onKeyDown={handleKeyDown}
       // pan-y: o arrasto horizontal gira o produto e o vertical continua rolando a página no celular.
-      className={`absolute inset-0 touch-pan-y select-none outline-none focus-visible:ring-1 focus-visible:ring-wine ${
+      className={`absolute inset-0 flex items-center justify-center touch-pan-y select-none outline-none focus-visible:ring-1 focus-visible:ring-wine/60 ${
         dragging ? "cursor-grabbing" : "cursor-grab"
       }`}
     >
@@ -147,17 +159,17 @@ export function Interactive360Video({ src, label, poster, onError }: Interactive
         aria-hidden
         onSeeked={applyTarget}
         onError={onError}
-        className="w-full h-full object-cover pointer-events-none"
+        className={`pointer-events-none ${mediaClassName}`}
       />
 
-      {/* Dica central: aparece quando o vídeo carrega e some na primeira interação */}
+      {/* Dica: aparece quando o vídeo carrega e some na primeira interação. Sem caixa, só texto. */}
       <div
         aria-hidden
-        className={`absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-500 ${
+        className={`absolute inset-x-0 bottom-[14%] flex justify-center pointer-events-none transition-opacity duration-500 ${hintClassName} ${
           ready && !interacted ? "opacity-100" : "opacity-0"
         }`}
       >
-        <span className="inline-flex items-center gap-2 bg-background/70 backdrop-blur-md border border-line px-4 py-2.5 rounded-sm font-mono text-[11px] sm:text-xs uppercase tracking-widest text-fg shadow-wine-subtle">
+        <span className="inline-flex items-center gap-2 font-mono text-[11px] sm:text-xs uppercase tracking-widest text-fg [text-shadow:0_1px_12px_rgba(0,0,0,0.9)]">
           <MoveHorizontal className="w-4 h-4 text-wine-glow animate-pulse" />
           Arraste para girar em 360°
         </span>
@@ -166,7 +178,7 @@ export function Interactive360Video({ src, label, poster, onError }: Interactive
       {!ready && (
         <p
           aria-hidden
-          className="absolute bottom-3 inset-x-3 text-center font-mono text-[10px] uppercase tracking-widest text-muted animate-pulse pointer-events-none"
+          className={`absolute inset-x-0 bottom-[14%] flex justify-center font-mono text-[10px] uppercase tracking-widest text-fg/60 animate-pulse pointer-events-none ${hintClassName}`}
         >
           {"// CARREGANDO 360°..."}
         </p>

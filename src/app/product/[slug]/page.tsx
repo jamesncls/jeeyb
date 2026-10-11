@@ -47,18 +47,7 @@ export default function ProductPage({ params }: ProductPageProps) {
       {/* Sem generateStaticParams o slug só existe na request: precisa de Suspense (Cache Components). */}
       <Suspense
         fallback={
-          <div
-            aria-busy="true"
-            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 animate-pulse"
-          >
-            <div className="aspect-square bg-surface border border-line rounded-sm" />
-            <div className="space-y-5">
-              <div className="h-6 w-24 bg-surface" />
-              <div className="h-12 w-4/5 bg-surface" />
-              <div className="h-10 w-40 bg-surface" />
-              <div className="h-40 bg-surface" />
-            </div>
-          </div>
+          <div aria-busy="true" className="h-[68svh] lg:h-[max(600px,calc(100svh-5rem))] bg-surface animate-pulse" />
         }
       >
         {params.then(({ slug }) => (
