@@ -30,6 +30,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
+      data-scroll-behavior="smooth"
       className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
       <body className="font-sans antialiased bg-background text-fg selection:bg-wine selection:text-white min-h-screen flex flex-col">

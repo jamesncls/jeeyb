@@ -31,6 +31,24 @@
     color-scheme: dark;
   }
 
+  /* Âncoras da home (#shop, #drops, #sobre) */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  /* prefers-reduced-motion: desliga animações e transições de CSS */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-fg);

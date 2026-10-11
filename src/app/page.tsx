@@ -1,13 +1,22 @@
+import { MotionProvider } from "@/components/layout/MotionProvider";
 import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/home/Hero";
+import { FeaturedDrops } from "@/components/home/FeaturedDrops";
+import { Manifesto } from "@/components/home/Manifesto";
 import { ProductGrid } from "@/components/shop/ProductGrid";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background text-fg">
+    <MotionProvider>
       <Navbar />
-      <Hero />
-      <ProductGrid />
-    </main>
+      <main className="flex-1 bg-background text-fg">
+        <Hero />
+        <FeaturedDrops />
+        <ProductGrid />
+        <Manifesto />
+      </main>
+      <Footer />
+    </MotionProvider>
   );
 }
