@@ -29,8 +29,8 @@ export function AdminPanel({ adminEmail }: { adminEmail: string }) {
   async function handleLogout() {
     setSigningOut(true);
     await supabase.auth.signOut();
-    // Navegação completa: passa pelo proxy de novo, já sem a sessão.
-    window.location.assign("/admin/login");
+    // Navegação completa: a loja recarrega já sem a sessão.
+    window.location.assign("/");
   }
 
   return (

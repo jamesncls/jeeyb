@@ -3,8 +3,8 @@ import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 // Roda antes de qualquer rota /admin: renova a sessão do Supabase nos cookies e
-// barra quem não está logado. A checagem de admin fica no servidor (AdminGate)
-// e no banco (RLS); isto aqui é só o primeiro filtro.
+// manda quem não está logado pro login único da loja (/login). A checagem de admin
+// fica no servidor (AdminGate) e no banco (RLS); isto aqui é só o primeiro filtro.
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -27,17 +27,24 @@ export async function proxy(request: NextRequest) {
   );
 
   const { data } = await supabase.auth.getClaims();
-  const isLoginPage = request.nextUrl.pathname === "/admin/login";
+  const { pathname, search } = request.nextUrl;
 
-  if (!data?.claims && !isLoginPage) {
+  // Redireciona levando junto os cookies de sessão que o Supabase acabou de renovar.
+  function redirectToLogin(next?: string) {
     const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = "/admin/login";
+    loginUrl.pathname = "/login";
     loginUrl.search = "";
+    if (next) loginUrl.searchParams.set("next", next);
 
     const redirectResponse = NextResponse.redirect(loginUrl);
     response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
     return redirectResponse;
   }
+
+  // Endereço antigo do login de admin (favoritos, links salvos): hoje o login é um só.
+  if (pathname === "/admin/login") return redirectToLogin();
+
+  if (!data?.claims) return redirectToLogin(pathname + search);
 
   return response;
 }

@@ -53,7 +53,7 @@ export function Navbar() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [mobileMenuOpen]);
 
-  const accountHref = account.kind === "admin" ? "/admin" : "/admin/login";
+  const accountHref = account.kind === "admin" ? "/admin" : "/login";
   const accountLabel = account.kind === "admin" ? "[ PAINEL ]" : account.kind === "customer" ? "[ MINHA CONTA ]" : "[ ENTRAR ]";
   const mobileItemClass =
     "flex w-full items-center justify-between py-4 font-mono text-sm tracking-widest text-muted hover:text-fg transition-colors duration-300";

@@ -13,6 +13,7 @@ interface CustomerRow {
   phone: string | null;
   address_street: string | null;
   address_number: string | null;
+  address_complement: string | null;
   address_neighborhood: string | null;
   address_city: string | null;
   address_state: string | null;
@@ -32,7 +33,8 @@ const dateFormatter = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: 
 function formatAddress(customer: CustomerRow) {
   if (!customer.address_street) return "Sem endereço cadastrado";
   const cep = customer.address_zipcode ? ` — CEP ${formatCep(customer.address_zipcode)}` : "";
-  return `${customer.address_street}, ${customer.address_number ?? "s/n"} — ${customer.address_neighborhood ?? ""}, ${
+  const complement = customer.address_complement ? `, ${customer.address_complement}` : "";
+  return `${customer.address_street}, ${customer.address_number ?? "s/n"}${complement} — ${customer.address_neighborhood ?? ""}, ${
     customer.address_city ?? ""
   } / ${customer.address_state ?? ""}${cep}`;
 }
@@ -51,7 +53,7 @@ export function CustomersPanel() {
       supabase
         .from("profiles")
         .select(
-          "id, full_name, phone, address_street, address_number, address_neighborhood, address_city, address_state, address_zipcode, created_at"
+          "id, full_name, phone, address_street, address_number, address_complement, address_neighborhood, address_city, address_state, address_zipcode, created_at"
         )
         .order("created_at", { ascending: false }),
       supabase.from("orders").select("user_id, customer_id, total, customer"),

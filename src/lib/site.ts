@@ -12,8 +12,9 @@ export const NAV_LINKS = [
 ];
 
 // Vídeos de fundo da hero, na ordem do carrossel. Os arquivos ficam em public/videos/.
-// Arquivo que ainda não existe é ignorado: as setas e os indicadores só aparecem com 2+ vídeos no ar.
-export const HERO_VIDEOS = ["/videos/hero-sneaker.mp4", "/videos/hero-jacket.mp4"];
+// Só liste arquivo que já existe na pasta: caminho sem arquivo vira 404 no console do navegador.
+// As setas e os indicadores aparecem sozinhos com 2+ vídeos (ex: adicionar "/videos/hero-jacket.mp4").
+export const HERO_VIDEOS = ["/videos/hero-sneaker.mp4"];
 
 export function whatsappLink(message?: string) {
   const base = `https://wa.me/${WHATSAPP_NUMBER}`;

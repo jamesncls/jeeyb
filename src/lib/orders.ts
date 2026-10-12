@@ -15,6 +15,7 @@ export interface OrderCustomer {
   cep?: string;
   street?: string;
   number?: string;
+  complement?: string;
   neighborhood?: string;
   city?: string;
   state?: string;
@@ -29,6 +30,7 @@ export function customerFromProfile(profile: CustomerProfile, email?: string): O
     cep: profile.cep,
     street: profile.street,
     number: profile.number,
+    complement: profile.complement || undefined,
     neighborhood: profile.neighborhood,
     city: profile.city,
     state: profile.state,
@@ -40,7 +42,8 @@ export function formatOrderAddress(customer: Partial<OrderCustomer> | null) {
   if (!customer) return "";
   if (!customer.street) return customer.location ?? "";
   const cep = customer.cep ? ` — CEP ${formatCep(customer.cep)}` : "";
-  return `${customer.street}, ${customer.number ?? "s/n"} — ${customer.neighborhood ?? ""}, ${customer.location ?? ""}${cep}`;
+  const complement = customer.complement ? `, ${customer.complement}` : "";
+  return `${customer.street}, ${customer.number ?? "s/n"}${complement} — ${customer.neighborhood ?? ""}, ${customer.location ?? ""}${cep}`;
 }
 
 export const ORDER_STATUSES = ["pending", "confirmed", "shipped", "delivered"] as const;

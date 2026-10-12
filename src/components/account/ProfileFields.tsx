@@ -97,7 +97,22 @@ export function ProfileFields({ idPrefix, value, onChange }: ProfileFieldsProps)
         />
       </div>
 
-      <div className="col-span-6">
+      <div className="col-span-6 sm:col-span-3">
+        <label htmlFor={id("complement")} className={ACCOUNT_LABEL}>
+          {"// COMPLEMENTO"}
+        </label>
+        <input
+          id={id("complement")}
+          type="text"
+          autoComplete="address-line3"
+          placeholder="Apto, bloco... (opcional)"
+          value={value.complement}
+          onChange={set("complement")}
+          className={ACCOUNT_INPUT}
+        />
+      </div>
+
+      <div className="col-span-6 sm:col-span-3">
         <label htmlFor={id("neighborhood")} className={ACCOUNT_LABEL}>
           {"// BAIRRO"}
         </label>

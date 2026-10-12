@@ -1,7 +1,10 @@
 -- =============================================================================
 -- jeeyb — policies da tabela de clientes (public.profiles)
--- OPCIONAL. Rode só se o perfil não estiver salvando/carregando no checkout
--- (no console do navegador aparece "Perfil não foi salvo no Supabase").
+-- NECESSÁRIO pra aba Clientes e o card "Clientes cadastrados" do /admin: sem a
+-- policy de leitura daqui, o admin só enxerga o próprio perfil e a lista vem vazia.
+-- Também resolve perfil que não salva/carrega no checkout (no console do navegador
+-- aparece "Perfil não foi salvo no Supabase").
+-- Rodar no Supabase: Dashboard → SQL Editor → New query → colar tudo → Run.
 --
 -- Não cria nem altera colunas: usa a tabela que já existe
 -- (id, full_name, phone, cpf, address_street, address_number, address_complement,

@@ -13,6 +13,8 @@ export interface CustomerAuthResult {
 
 type AuthOutcome = { result: CustomerAuthResult } | { error: string };
 
+const EMAIL_TAKEN_MSG = "Este e-mail já está cadastrado. Faça login para continuar.";
+
 function authErrorMessage(code: string | undefined, status: number | undefined) {
   switch (code) {
     case "invalid_credentials":
@@ -21,7 +23,9 @@ function authErrorMessage(code: string | undefined, status: number | undefined) 
       return "Falta confirmar seu e-mail: abre o link que a gente te mandou e tenta de novo.";
     case "user_already_exists":
     case "email_exists":
-      return "Esse e-mail já tem conta. Usa a aba [ JÁ TENHO CONTA ].";
+      return EMAIL_TAKEN_MSG;
+    case "user_banned":
+      return "Essa conta está bloqueada. Chama a gente no WhatsApp.";
     case "weak_password":
       return "Senha fraca demais. Usa pelo menos 6 caracteres.";
     case "email_address_invalid":
@@ -42,11 +46,17 @@ export async function signUpCustomer(email: string, password: string, profile: C
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: profileToMetadata(profile), emailRedirectTo: window.location.origin },
+    // O link de confirmação volta pro /login, que já manda cada um pro lugar certo.
+    options: { data: profileToMetadata(profile), emailRedirectTo: `${window.location.origin}/login` },
   });
   if (error || !data.user) return { error: authErrorMessage(error?.code, error?.status) };
 
-  // Com sessão, já grava o perfil. Sem sessão (e-mail por confirmar) o RLS não deixa:
+  // Com confirmação de e-mail ligada o Supabase não devolve erro pra e-mail que já tem conta
+  // (pra não revelar quem é cliente): devolve um usuário sem identidades e sem sessão.
+  if (!data.session && data.user.identities?.length === 0) return { error: EMAIL_TAKEN_MSG };
+
+  // Com sessão (confirmação de e-mail desligada) o cliente já sai logado e o perfil é gravado na
+  // hora: quem chamou segue direto pro próximo passo. Sem sessão (e-mail por confirmar) o RLS não deixa:
   // os dados ficam no user_metadata e viram perfil no primeiro login.
   if (data.session) await saveProfile(data.user.id, profile);
 

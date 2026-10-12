@@ -6,8 +6,9 @@ import { AdminPanel } from "./AdminPanel";
 export async function AdminGate() {
   const session = await getAdminSession();
 
-  if (session.status === "anonymous") redirect("/admin/login");
-  if (session.status === "forbidden") redirect("/admin/login?erro=sem-permissao");
+  if (session.status === "anonymous") redirect("/login?next=/admin");
+  // Cliente logado tentando abrir o painel: volta pra loja sem aviso (não revela que o painel existe).
+  if (session.status === "forbidden") redirect("/");
 
   return <AdminPanel adminEmail={session.email} />;
 }

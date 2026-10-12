@@ -1,7 +1,7 @@
-import { useEffect, useReducer } from "react";
+import { useReducer } from "react";
 
 interface SliderState {
-  // Vídeos que existem de fato, na ordem do carrossel.
+  // Vídeos do carrossel, na ordem. Um arquivo que falhar ao carregar sai da lista.
   videos: string[];
   // Selecionado pelo usuário (é o que os indicadores mostram).
   active: string;
@@ -13,7 +13,6 @@ interface SliderState {
 }
 
 type SliderAction =
-  | { type: "available"; videos: string[] }
   | { type: "select"; src: string }
   | { type: "ready"; src: string }
   | { type: "failed"; src: string };
@@ -31,10 +30,6 @@ function select(state: SliderState, src: string): SliderState {
 
 function reducer(state: SliderState, action: SliderAction): SliderState {
   switch (action.type) {
-    case "available": {
-      const next = { ...state, videos: action.videos };
-      return action.videos.includes(state.active) || action.videos.length === 0 ? next : select(next, action.videos[0]);
-    }
     case "select":
       return state.videos.includes(action.src) ? select(state, action.src) : state;
     case "ready": {
@@ -51,33 +46,13 @@ function reducer(state: SliderState, action: SliderAction): SliderState {
   }
 }
 
-// Estado do carrossel de vídeos da hero. `sources` precisa ser uma lista estável (constante).
+// Estado do carrossel de vídeos da hero. Confia na lista recebida (HERO_VIDEOS): não sonda os
+// arquivos pela rede, então só o vídeo selecionado é pedido ao servidor.
 export function useHeroSlider(sources: string[]) {
   const [state, dispatch] = useReducer(reducer, sources, (all): SliderState => {
     const first = all.slice(0, 1);
-    return { videos: first, active: first[0] ?? "", shown: first[0] ?? "", mounted: first, ready: [] };
+    return { videos: all, active: first[0] ?? "", shown: first[0] ?? "", mounted: first, ready: [] };
   });
-
-  // Confere quais arquivos existem (o primeiro é carregado direto pelo <video>).
-  useEffect(() => {
-    if (sources.length < 2) return;
-    let active = true;
-    Promise.all(
-      sources.map((src, index) =>
-        index === 0
-          ? true
-          : fetch(src, { method: "HEAD" }).then(
-              (response) => response.ok,
-              () => false
-            )
-      )
-    ).then((exists) => {
-      if (active) dispatch({ type: "available", videos: sources.filter((_, index) => exists[index]) });
-    });
-    return () => {
-      active = false;
-    };
-  }, [sources]);
 
   const { videos } = state;
   const activeIndex = Math.max(videos.indexOf(state.active), 0);

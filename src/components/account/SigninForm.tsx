@@ -11,7 +11,7 @@ interface SigninFormProps {
   onSuccess: (result: CustomerAuthResult) => void;
 }
 
-// Aba [ JÁ TENHO CONTA ]: login com e-mail e senha.
+// Aba [ ENTRAR ]: login com e-mail e senha (cliente ou admin).
 export function SigninForm({ submitLabel, onSuccess }: SigninFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

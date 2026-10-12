@@ -1,21 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import type { CustomerAuthResult } from "@/lib/customer-auth";
 import { useModal } from "@/lib/use-modal";
-import { SignupForm } from "./SignupForm";
-import { SigninForm } from "./SigninForm";
+import { AuthPanel } from "./AuthPanel";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
-
-const TABS = [
-  { id: "signup", label: "[ CRIAR CONTA ]" },
-  { id: "signin", label: "[ JÁ TENHO CONTA ]" },
-] as const;
-type AuthTab = (typeof TABS)[number]["id"];
 
 interface CustomerAuthModalProps {
   open: boolean;
@@ -27,15 +19,9 @@ interface CustomerAuthModalProps {
   signinLabel?: string;
 }
 
-// Modal de cadastro/login do cliente. Fica por cima da gaveta do carrinho.
-export function CustomerAuthModal({
-  open,
-  onClose,
-  onAuthenticated,
-  signupLabel = "CRIAR CONTA",
-  signinLabel = "ENTRAR",
-}: CustomerAuthModalProps) {
-  const [tab, setTab] = useState<AuthTab>("signup");
+// Modal de cadastro/login do checkout: é o mesmo AuthPanel da página /login, por cima da gaveta
+// do carrinho, pra o cliente se identificar sem sair da compra.
+export function CustomerAuthModal({ open, onClose, onAuthenticated, signupLabel, signinLabel }: CustomerAuthModalProps) {
   const panelRef = useModal<HTMLDivElement>(open, onClose);
 
   // Portal no <body>: quem abre o modal (gaveta, navbar) tem transform/backdrop-filter,
@@ -85,35 +71,13 @@ export function CustomerAuthModal({
               </button>
             </header>
 
-            <div role="tablist" aria-label="Criar conta ou entrar" className="shrink-0 grid grid-cols-2 gap-2 px-5 pt-4">
-              {TABS.map((item) => {
-                const active = item.id === tab;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={active}
-                    onClick={() => setTab(item.id)}
-                    className={`font-mono text-[11px] sm:text-xs uppercase tracking-wider px-2 py-3 rounded-sm border transition-all duration-300 ${
-                      active
-                        ? "border-wine bg-wine/20 text-fg shadow-wine-subtle"
-                        : "border-line bg-background text-muted hover:border-wine/60 hover:text-fg"
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="flex-1 min-h-0 overflow-y-auto px-5 py-5">
-              {tab === "signup" ? (
-                <SignupForm submitLabel={signupLabel} onSuccess={onAuthenticated} />
-              ) : (
-                <SigninForm submitLabel={signinLabel} onSuccess={onAuthenticated} />
-              )}
-            </div>
+            {/* No checkout quem chega é quase sempre cliente novo: abre na aba de cadastro. */}
+            <AuthPanel
+              defaultTab="signup"
+              onAuthenticated={onAuthenticated}
+              signupLabel={signupLabel}
+              signinLabel={signinLabel}
+            />
           </motion.div>
         </div>
       )}

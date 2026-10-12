@@ -12,7 +12,7 @@ export default function AdminPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-background flex items-center justify-center">
-          <span className="font-mono text-sm text-muted animate-pulse">// VERIFICANDO ACESSO...</span>
+          <span className="font-mono text-sm text-muted animate-pulse">{"// VERIFICANDO ACESSO..."}</span>
         </div>
       }
     >
